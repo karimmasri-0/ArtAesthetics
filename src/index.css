@@ -58,7 +58,8 @@ header {
   width: 100%;
   border-radius: 0 0 85% 85% / 30%;
   padding: 50px;
-  color: white
+  color: white;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
 /* 
