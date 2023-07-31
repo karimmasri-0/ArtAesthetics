@@ -10,18 +10,19 @@ CORS(app)
 def get_soundcloud_data(url):
     try:
         result = requests.get(url)
+        print(result)
         result.raise_for_status()
         soup = BeautifulSoup(result.content, "html.parser")
         img = soup.find('div').find('img')
-        src = (img.get_attribute_list('src')[0]).replace(
-            't500x500', 'original')
-        title = img.get_attribute_list('alt')[0]
+        src = img.get('src').replace('t500x500', 'original')
+        title = img.get('alt')
         return {'src': src, 'title': title}
     except requests.exceptions.HTTPError as e:
         raise ValueError('Not a valid Soundcloud link.')
     except requests.exceptions.RequestException as e:
         raise ValueError('Request failed.')
     except (AttributeError, IndexError, KeyError) as e:
+        raise ValueError('Not a valid Soundcloud link.')
         raise ValueError('Error while parsing.')
 
 
@@ -29,7 +30,8 @@ def get_soundcloud_data(url):
 def process_data():
     try:
         data = request.json
-        url = data.get('link')
+        url = data.get('link').split('?', 1)[0]
+        print(url)
         result = get_soundcloud_data(url)
         return jsonify(result)
     except ValueError as e:

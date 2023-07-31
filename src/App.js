@@ -1,22 +1,30 @@
-import "./App.css";
 import axios from "axios";
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
-import temp from "./images/temp.png";
+import temp from "./images/soundcloud.png";
 import * as Yup from "yup";
+import { SlClose } from "react-icons/sl";
 
 function App() {
   const [image, setImage] = useState();
   const [imageTitle, setImageTitle] = useState();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [error, setError] = useState({ error: false, text: "Downloading" });
   const urlRegex = /^https?:\/\/(?:www\.)?soundcloud\.com\//;
   const formik = useFormik({
     initialValues: {
-      link: "https://soundcloud.com/night_lovell/mary-jane-1",
+      link: "",
     },
     validationSchema: Yup.object({
-      link: Yup.string().matches(urlRegex, "Enter a valid url"),
+      link: Yup.string()
+        .matches(urlRegex, () => {
+          setError({ error: true, text: "Enter a valid url" });
+          return "Enter a valid url";
+        })
+        .required(() => {
+          setError({ error: true, text: "Link required" });
+          return "Link required";
+        }),
     }),
     onSubmit: (values) => {
       axios
@@ -49,28 +57,35 @@ function App() {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                setIsOpen(true);
+                setError({ error: false, text: "Downloading" });
+                setIsPopoverOpen(true);
               })
               .catch((error) => {
+                setImage();
+                setImageTitle();
+                setIsPopoverOpen(true);
                 setError({ error: true, text: error.response.data.error });
                 console.error(error);
               });
           }
         })
         .catch((error) => {
+          setImage();
+          setImageTitle();
+          setIsPopoverOpen(true);
           setError({ error: true, text: error.response.data.error });
           console.error(error);
         });
     },
   });
-  // useEffect(() => {
-  //   if (isOpen)
-  //     setTimeout(() => {
-  //       setIsOpen(false);
-  //     }, 5000);
-  // });
+  useEffect(() => {
+    if (isPopoverOpen)
+      setTimeout(() => {
+        setIsPopoverOpen(false);
+      }, 5000);
+  });
   return (
-    <main className="selection:text-red-400 selection:bg-gray-900">
+    <main className="mb-8 selection:text-red-400 selection:bg-gray-900 bg-cred">
       <div className="flex flex-col items-center pt-4 background">
         <header className="text-center ">
           <h1 className="my-8 text-5xl">Art Aesthetics</h1>
@@ -78,23 +93,23 @@ function App() {
             Download Soundcloud Artworks in original high quality
           </p>
         </header>
-        <div></div>
-
         <div
           className={`mt-16 top-0 px-8 py-2 text-sm transition-all duration-500 border rounded-md  border-rose-400 opacity-0 ${
-            isOpen ? "opacity-100" : "opacity-0"
+            isPopoverOpen || formik.errors.link ? "opacity-100" : "opacity-0"
           } ${
-            error.error
+            error.error || formik.errors.link
               ? "text-cred bg-rose-300"
               : "text-rose-300 bg-gray-300/20"
           }`}
         >
           {error.text}
         </div>
+        {console.log("formik.errors.link >>> ", formik.errors.link)}
+        {console.log("error >>> ", error)}
 
         <form
           onSubmit={formik.handleSubmit}
-          className="relative flex w-2/5 p-1 mt-8 text-sm bg-white rounded-lg"
+          className="relative flex w-11/12 p-1 mt-8 text-sm bg-white rounded-lg sm:w-8/12 md:w-6/12 lg:w-4/12"
         >
           <input
             value={formik.values.link}
@@ -111,18 +126,30 @@ function App() {
           </button>
         </form>
       </div>
-      <div className="mt-12 text-2xl text-center text-gray-300 ">
-        {imageTitle}
-      </div>
-      <img
-        alt="preview"
-        src={image ? image : temp}
-        className={` ${
-          image
-            ? "w-1/3 mx-auto mb-8 mt-2 transition-all duration-700 scale-100 rounded lg:w-1/3 md:w-1/2 border-zinc-900"
-            : "w-0 scale-0"
-        }`}
-      />
+      {(image || (error.error && !formik.errors.link)) && (
+        <div className="flex flex-col w-10/12 gap-6 p-6 mx-auto mt-10 rounded-lg shadow-xl sm:p-10 sm:w-8/12 md:w-8/12 lg:w-6/12 xl:w-4/12">
+          <div
+            className={`mx-8 font-semibold flex justify-center text-gray-300 sm:text-xl md:text-2xl ${
+              error.error ? "order-last" : "order-first"
+            }`}
+          >
+            {error.error ? (
+              <SlClose size={30} className="text-red-900" />
+            ) : (
+              imageTitle
+            )}
+          </div>
+          <img
+            alt="album art"
+            src={error.error ? temp : image}
+            className={` ${
+              image || error.error
+                ? "w-full transition-all duration-700 scale-100 rounded border-zinc-900 "
+                : "w-0 scale-0"
+            }`}
+          />
+        </div>
+      )}
     </main>
   );
 }
