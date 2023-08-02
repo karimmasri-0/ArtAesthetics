@@ -4,13 +4,30 @@ import { useEffect, useState } from "react";
 import temp from "./images/soundcloud.png";
 import * as Yup from "yup";
 import { SlClose } from "react-icons/sl";
+import { ImSpinner5 } from "react-icons/im";
+// import { ImSpinner2 } from "react-icons/im";
+import { Buffer } from "buffer";
 
 function App() {
   const [image, setImage] = useState();
   const [imageTitle, setImageTitle] = useState();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState({ error: false, text: "Downloading" });
   const urlRegex = /^https?:\/\/(?:www\.)?soundcloud\.com\//;
+
+  function base64ToUint8Array(base64) {
+    const binaryString = atob(base64);
+    const length = binaryString.length;
+    const uint8Array = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
+      uint8Array[i] = binaryString.charCodeAt(i);
+    }
+    return uint8Array;
+  }
+  const decodeBase64 = (data) => {
+    return Buffer.from(data, "base64").toString("ascii");
+  };
   const formik = useFormik({
     initialValues: {
       link: "",
@@ -27,52 +44,44 @@ function App() {
         }),
     }),
     onSubmit: (values) => {
+      setIsLoading(true);
       axios
         .post("http://localhost:5000/process_data", { link: values.link })
         .then(async (response) => {
           console.log(response.data);
           setImageTitle(response.data.title);
           if (response.data.src) {
-            console.log(response.data.src);
-            await axios
-              .get(response.data.src, { responseType: "blob" })
-              .then(async (response_blob) => {
-                const file = new File(
-                  [response_blob.data],
-                  response.data.title,
-                  {
-                    type: "image/jpeg",
-                  }
-                );
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                  setImage(reader.result);
-                };
-                reader.readAsDataURL(file);
+            console.log(typeof base64ToUint8Array(response.data.image_blob));
+            const file = new File(
+              [base64ToUint8Array(response.data.image_blob)],
+              response.data.title,
+              {
+                type: "image/jpeg",
+              }
+            );
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImage(reader.result);
+            };
+            reader.readAsDataURL(file);
 
-                const objectUrl = URL.createObjectURL(response_blob.data);
-                const link = document.createElement("a");
-                link.setAttribute("href", objectUrl);
-                link.setAttribute("download", response.data.title);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setError({ error: false, text: "Downloading" });
-                setIsPopoverOpen(true);
-              })
-              .catch((error) => {
-                setImage();
-                setImageTitle();
-                setIsPopoverOpen(true);
-                setError({ error: true, text: error.response.data.error });
-                console.error(error);
-              });
+            const objectUrl = URL.createObjectURL(file);
+            const link = document.createElement("a");
+            link.setAttribute("href", objectUrl);
+            link.setAttribute("download", response.data.title);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setError({ error: false, text: "Downloading" });
+            setIsPopoverOpen(true);
+            setIsLoading(false);
           }
         })
         .catch((error) => {
           setImage();
           setImageTitle();
           setIsPopoverOpen(true);
+          setIsLoading(false);
           setError({ error: true, text: error.response.data.error });
           console.error(error);
         });
@@ -104,9 +113,6 @@ function App() {
         >
           {error.text}
         </div>
-        {console.log("formik.errors.link >>> ", formik.errors.link)}
-        {console.log("error >>> ", error)}
-
         <form
           onSubmit={formik.handleSubmit}
           className="relative flex w-11/12 p-1 mt-8 text-sm bg-white rounded-lg sm:w-8/12 md:w-6/12 lg:w-4/12"
@@ -119,10 +125,17 @@ function App() {
             placeholder="https://soundcloud.com/1812922/afraid-of-everything"
           />
           <button
-            className=" inset-y-0 px-2 py-2.5 my-0.5 bg-cred right-1 rounded-xl hover:bg-red-900"
+            disabled={isLoading}
+            className={`w-1/4 my-0.5 inset-y-0 px-2 py-2.5 bg-cred right-1 rounded-xl hover:bg-red-900 ${
+              isLoading && "cursor-not-allowed"
+            }`}
             type="submit"
           >
-            Download
+            {isLoading ? (
+              <ImSpinner5 className="mx-auto animate-spin" size={20} />
+            ) : (
+              "Download"
+            )}
           </button>
         </form>
       </div>
@@ -142,11 +155,11 @@ function App() {
           <img
             alt="album art"
             src={error.error ? temp : image}
-            className={` ${
+            className={`${
               image || error.error
-                ? "w-full transition-all duration-700 scale-100 rounded border-zinc-900 "
+                ? "w-full transition-all duration-700 scale-100 rounded border-zinc-900"
                 : "w-0 scale-0"
-            }`}
+            } ${image && " shadow-xl"}`}
           />
         </div>
       )}
