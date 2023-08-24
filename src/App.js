@@ -7,8 +7,9 @@ import { SlClose } from "react-icons/sl";
 import { ImSpinner5 } from "react-icons/im";
 
 function App() {
-  const [image, setImage] = useState();
-  const [imageTitle, setImageTitle] = useState();
+  const [image, setImage] = useState("");
+  const [imageTitle, setImageTitle] = useState("");
+  const [artist, setArtist] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [scError, setScError] = useState(false);
@@ -43,50 +44,123 @@ function App() {
         .required(() => {
           formik.setErrors({ link: "Link required" });
           setIsPopoverOpen(true);
+          setScError(false);
           return "Link required";
         }),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       setIsLoading(true);
-      axios
-        .post("http://192.168.1.107:5000/process_data", { link: values.link })
+      await axios
+        .get(
+          `${
+            "https://soundcloud.com/oembed?url=" +
+            values.link +
+            "&amp;format=json"
+          }`
+        )
         .then(async (response) => {
-          console.log(response.data);
-          setImageTitle(response.data.title);
-          if (response.data.src) {
-            const file = new File(
-              [base64ToUint8Array(response.data.image_blob)],
-              response.data.title,
-              {
-                type: "image/jpeg",
-              }
-            );
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setImage(reader.result);
-            };
-            reader.readAsDataURL(file);
-
-            const objectUrl = URL.createObjectURL(file);
-            const link = document.createElement("a");
-            link.setAttribute("href", objectUrl);
-            link.setAttribute("download", response.data.title);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            formik.setErrors({ link: "" });
-            setScError(false);
-            setIsPopoverOpen(true);
-            setIsLoading(false);
+          const titleAndArtist = response.data.title.split(" by ");
+          setImageTitle(titleAndArtist[0]);
+          setArtist(titleAndArtist[1]);
+          if (
+            response.data.thumbnail_url !==
+            "https://soundcloud.com/images/fb_placeholder.png"
+          ) {
+            console.log("running on front");
+            await axios
+              .get(
+                response.data.thumbnail_url.replace("t500x500", "original"),
+                {
+                  responseType: "blob",
+                }
+              )
+              .then((response) => {
+                console.log(titleAndArtist[0]);
+                const file = new File([response.data], titleAndArtist[0], {
+                  type: "image/jpeg",
+                });
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setImage(reader.result);
+                };
+                reader.readAsDataURL(file);
+                const objectUrl = URL.createObjectURL(file);
+                const link = document.createElement("a");
+                link.setAttribute("href", objectUrl);
+                link.setAttribute("download", titleAndArtist[0]);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                formik.setErrors({ link: "" });
+                setIsLoading(false);
+                setScError(false);
+                setIsPopoverOpen(true);
+              })
+              .catch((error) => {
+                setImage();
+                setImageTitle();
+                setIsLoading(false);
+                setScError(true);
+                formik.setErrors({ link: "Error while parsing" });
+                // formik.setErrors({ link: error.response.statusText });
+                setIsPopoverOpen(true);
+                console.error(error);
+              });
+          } else {
+            console.log("running on server");
+            axios
+              .post("http://192.168.1.107:5000/process_data", {
+                link: values.link,
+              })
+              .then(async (response) => {
+                console.log(response.data);
+                setImageTitle(response.data.title);
+                if (response.data.src) {
+                  const file = new File(
+                    [base64ToUint8Array(response.data.image_blob)],
+                    response.data.title,
+                    {
+                      type: "image/jpeg",
+                    }
+                  );
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setImage(reader.result);
+                  };
+                  reader.readAsDataURL(file);
+                  const objectUrl = URL.createObjectURL(file);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", objectUrl);
+                  link.setAttribute("download", response.data.title);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  formik.setErrors({ link: "" });
+                  setIsLoading(false);
+                  setScError(false);
+                  setIsPopoverOpen(true);
+                }
+              })
+              .catch((error) => {
+                setImage();
+                setImageTitle();
+                setIsLoading(false);
+                setScError(true);
+                formik.setErrors({ link: "Error while parsing" });
+                // formik.setErrors({ link: error.response.statusText });
+                setIsPopoverOpen(true);
+                console.error(error);
+              });
           }
         })
         .catch((error) => {
           setImage();
           setImageTitle();
-          formik.setErrors({ link: error.response.data.error });
-          setScError(true);
-          setIsPopoverOpen(true);
           setIsLoading(false);
+          setScError(true);
+          formik.setErrors({ link: "Error while parsing" });
+          // formik.setErrors({ link: error.response.statusText });
+          setIsPopoverOpen(true);
           console.error(error);
         });
     },
@@ -97,9 +171,9 @@ function App() {
         setIsPopoverOpen(false);
         setTimeout(() => {
           formik.setErrors({ link: "" });
-        }, 333);
+        }, 500);
       }, 5000);
-  }, [isPopoverOpen]);
+  }, [isPopoverOpen, formik]);
 
   return (
     <main className="mb-8 selection:text-red-400 selection:bg-gray-900 bg-cred">
@@ -119,7 +193,11 @@ function App() {
               : "text-rose-300 bg-gray-300/20"
           }`}
         >
-          {formik.errors.link ? formik.errors.link : "Downloading"}
+          {formik.errors.link
+            ? formik.errors.link
+            : !formik.errors.link && !scError
+            ? "Downloading"
+            : "‎ "}
         </div>
         <form
           onSubmit={formik.handleSubmit}
@@ -148,22 +226,29 @@ function App() {
         </form>
       </div>
 
-      {(image || formik.errors.link) && !scError && (
+      {(image || scError) && (
         <div className="flex flex-col w-10/12 gap-6 p-6 mx-auto mt-10 rounded-lg shadow-xl sm:p-10 sm:w-8/12 md:w-8/12 lg:w-6/12 xl:w-4/12">
           <div
-            className={`mx-8 font-semibold flex justify-center text-gray-300 sm:text-xl md:text-2xl ${
-              formik.errors.link ? "order-last" : "order-first"
+            className={`mx-8 font-semibold flex justify-center ${
+              formik.errors.link || scError ? "order-last" : "order-first"
             }`}
           >
-            {formik.errors.link ? (
+            {formik.errors.link || scError ? (
               <SlClose size={30} className="text-red-900" />
             ) : (
-              imageTitle
+              <div className="text-center">
+                <div className="text-gray-200 sm:text-xl md:text-2xl">
+                  {imageTitle}
+                </div>
+                <div className="mt-0.5 text-red-400">{artist}</div>
+              </div>
             )}
           </div>
           <img
             alt="album art"
-            src={scError ? temp : image}
+            src={
+              scError && formik.errors.link !== "Link required" ? temp : image
+            }
             className={`${
               true
                 ? "w-full transition-all duration-700 scale-100 rounded border-zinc-900"
