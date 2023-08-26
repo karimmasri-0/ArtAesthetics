@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/artathtetics/static/css/main.c618a714.css",
-    "main.js": "/artathtetics/static/js/main.3556a411.js",
-    "static/js/787.7b63f85e.chunk.js": "/artathtetics/static/js/787.7b63f85e.chunk.js",
-    "static/media/afterthought.jpg": "/artathtetics/static/media/afterthought.725d2a900e06af9b81ac.jpg",
-    "static/media/soundcloud.png": "/artathtetics/static/media/soundcloud.97a2f3d5ed4d8aef5276.png",
-    "index.html": "/artathtetics/index.html",
-    "main.c618a714.css.map": "/artathtetics/static/css/main.c618a714.css.map",
-    "main.3556a411.js.map": "/artathtetics/static/js/main.3556a411.js.map",
-    "787.7b63f85e.chunk.js.map": "/artathtetics/static/js/787.7b63f85e.chunk.js.map"
+    "main.css": "/ArtAthtetics/static/css/main.0b5d0253.css",
+    "main.js": "/ArtAthtetics/static/js/main.f564efb1.js",
+    "static/js/787.7b63f85e.chunk.js": "/ArtAthtetics/static/js/787.7b63f85e.chunk.js",
+    "static/media/afterthought.jpg": "/ArtAthtetics/static/media/afterthought.725d2a900e06af9b81ac.jpg",
+    "static/media/soundcloud.png": "/ArtAthtetics/static/media/soundcloud.97a2f3d5ed4d8aef5276.png",
+    "index.html": "/ArtAthtetics/index.html",
+    "main.0b5d0253.css.map": "/ArtAthtetics/static/css/main.0b5d0253.css.map",
+    "main.f564efb1.js.map": "/ArtAthtetics/static/js/main.f564efb1.js.map",
+    "787.7b63f85e.chunk.js.map": "/ArtAthtetics/static/js/787.7b63f85e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c618a714.css",
-    "static/js/main.3556a411.js"
+    "static/css/main.0b5d0253.css",
+    "static/js/main.f564efb1.js"
   ]
 }
