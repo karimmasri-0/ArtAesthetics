@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/ArtAthtetics/static/css/main.0b5d0253.css",
-    "main.js": "/ArtAthtetics/static/js/main.f564efb1.js",
-    "static/js/787.7b63f85e.chunk.js": "/ArtAthtetics/static/js/787.7b63f85e.chunk.js",
-    "static/media/afterthought.jpg": "/ArtAthtetics/static/media/afterthought.725d2a900e06af9b81ac.jpg",
-    "static/media/soundcloud.png": "/ArtAthtetics/static/media/soundcloud.97a2f3d5ed4d8aef5276.png",
-    "index.html": "/ArtAthtetics/index.html",
-    "main.0b5d0253.css.map": "/ArtAthtetics/static/css/main.0b5d0253.css.map",
-    "main.f564efb1.js.map": "/ArtAthtetics/static/js/main.f564efb1.js.map",
-    "787.7b63f85e.chunk.js.map": "/ArtAthtetics/static/js/787.7b63f85e.chunk.js.map"
+    "main.css": "/ArtAesthetics/static/css/main.c91a1c4f.css",
+    "main.js": "/ArtAesthetics/static/js/main.035b0abf.js",
+    "static/js/787.4de628ed.chunk.js": "/ArtAesthetics/static/js/787.4de628ed.chunk.js",
+    "static/media/afterthought.jpg": "/ArtAesthetics/static/media/afterthought.725d2a900e06af9b81ac.jpg",
+    "static/media/soundcloud.png": "/ArtAesthetics/static/media/soundcloud.97a2f3d5ed4d8aef5276.png",
+    "index.html": "/ArtAesthetics/index.html",
+    "main.c91a1c4f.css.map": "/ArtAesthetics/static/css/main.c91a1c4f.css.map",
+    "main.035b0abf.js.map": "/ArtAesthetics/static/js/main.035b0abf.js.map",
+    "787.4de628ed.chunk.js.map": "/ArtAesthetics/static/js/787.4de628ed.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.0b5d0253.css",
-    "static/js/main.f564efb1.js"
+    "static/css/main.c91a1c4f.css",
+    "static/js/main.035b0abf.js"
   ]
 }
